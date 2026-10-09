@@ -1,0 +1,24 @@
+{
+  "name": "opengym-ai-coach",
+  "version": "0.1.0",
+  "description": "AI-powered coaching layer for openGym workout data",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "opengym",
+    "ai-coach",
+    "fitness",
+    "llm",
+    "openai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "openai": "^4.67.3"
+  }
+}
