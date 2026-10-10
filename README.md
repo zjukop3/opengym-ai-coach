@@ -1,147 +1,179 @@
-# openGym-AI-Coach
+# openGym AI Coach
 
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![Node Version](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg)](CONTRIBUTING.md)
+[![Tests](https://img.shields.io/github/actions/workflow/status/<user>/opengym-ai-coach/test.yml?branch=main&label=tests&style=flat-square)]()
+[![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D18.0-brightgreen?style=flat-square)]()
 
-> 🤖 基于 openGym 历史训练数据，微调 LLM 生成个性化训练建议与疲劳度预警，填补 AI 教练生态空缺。
+**中文** | [English](#english)
 
----
+## 🧠 openGym AI 教练
 
-## 为什么有这个项目
+一个基于 openGym 的轻量级 AI 训练助手。它分析你过去几周的训练数据，通过 LLM 生成周期化训练建议，并在疲劳累积时发出预警。
 
-[openGym](https://github.com/DuarteSantos8/openGym) 是一个出色的自托管健身追踪器，它帮你记录了每一次训练、重量与体重。然而，数据本身并不会自动变成洞察。
+**为什么需要这个项目？**
 
-**openGym-AI-Coach** 旨在填补这一生态空缺：通过接入 LLM（如 OpenAI），分析你的训练量（Volume）、PR（个人纪录）趋势与疲劳度，为你生成周期化训练建议与预警，就像拥有一位私人 AI 教练。
+[openGym](https://github.com/DuarteSantos8/openGym) 是出色的自托管健身追踪器，让你完全掌控训练数据。但它缺少一个智能教练 —— 能告诉你何时该加重、何时该减载、何时该休息。openGym AI Coach 正是为此而生，作为生态补充，不修改主项目分毫。
 
-## 特性
+### ✨ 特性
 
-- 📊 **数据解析**：解析 openGym 导出的 JSON 训练数据。
-- 🧠 **AI 分析**：基于 OpenAI API 分析训练量、PR 趋势与肌肉群疲劳度。
-- ⚠️ **疲劳预警**：识别过度训练风险与目标肌群滞后。
-- 🗓️ **周期化建议**：生成下一周期的训练计划建议。
-- 🚀 **独立运行**：作为独立 Node.js 服务运行，不侵入主项目代码库。
+- 🤖 **AI 驱动建议**：基于实际训练量、PR 趋势和恢复状态，由 OpenAI 模型生成个性化周计划
+- ⚠️ **疲劳度预警**：自动检测连续高强度训练、睡眠不足（若接入）等情况，发出预警
+- 🔌 **开箱即用的 API**：REST 接口，可轻松集成到 openGym 的 Webhook 或定时任务中
+- 🧩 **可定制提示模板**：提供默认提示，也可通过环境变量注入你自己的教练风格
+- 📊 **数据可视化**：简单的 Web 页面查看最近建议与疲劳分（可选）
+- 📦 **自托管友好**：Docker 一键部署，独立于 openGym 运行，只读访问训练数据
 
-## 安装
+### 📦 安装
 
-确保你已安装 Node.js (>=18.0.0)。
+确保已安装 Node.js ≥ 18。
 
 ```bash
-git clone https://github.com/yourname/opengym-ai-coach.git
+git clone https://github.com/<user>/opengym-ai-coach.git
 cd opengym-ai-coach
 npm install
 ```
 
-## 快速上手
+### ⚙️ 配置
 
-1. 从你的 openGym 实例导出训练数据（JSON 格式）。
-2. 设置 OpenAI API Key 环境变量：
+在项目根目录创建 `.env` 文件：
 
-```bash
-export OPENAI_API_KEY="your_api_key_here"
+```env
+OPENGYM_URL=https://your-opengym-instance.com
+OPENGYM_API_KEY=your_opengym_api_key
+OPENAI_API_KEY=sk-your-key-here
+PORT=3000
 ```
 
-3. 启动服务：
+`OPENGYM_API_KEY` 是 openGym 的 API 访问令牌（可在管理后台生成）。
+
+### 🚀 快速上手
 
 ```bash
 npm start
 ```
 
-4. 在另一个终端使用 curl 测试：
+服务将运行在 `http://localhost:3000`。
+
+**生成训练建议**
 
 ```bash
-curl -X POST http://localhost:3000/api/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"workouts": [{"date": "2023-10-01", "exercise": "Bench Press", "sets": 3, "reps": 10, "weight": 80}]}'
+curl -X POST http://localhost:3000/api/coach/advice -H 'Content-Type: application/json' -d '{"weeks": 4}'
 ```
 
-## 与主项目的关系
+返回 JSON 格式的建议：
 
-本项目是 [DuarteSantos8/openGym](https://github.com/DuarteSantos8/openGym) 的非官方生态补充项目。
+```json
+{
+  "advice": "基于你最近4周的训练数据...",
+  "fatigueLevel": "moderate",
+  "nextWeekPlan": { "monday": "...", ... }
+}
+```
 
-- **不包含主项目代码**：本项目不包含也不修改 openGym 的核心源码。
-- **数据独立**：通过读取 openGym 导出的数据文件工作，不直接连接其数据库。
-- **定位补充**：openGym 专注于“记录”，本项目专注于“分析与建议”。
+openGym 可配置 Webhook 在每周日自动调用该接口，将建议发送到你的通知渠道。
 
-## Roadmap
+### 🔗 与主项目的关系
 
-- [x] 基础数据解析与 API 路由
-- [ ] 支持更精细的疲劳度计算算法
-- [ ] Web UI 仪表盘展示分析结果
-- [ ] 支持本地开源 LLM（如 Llama 3）以实现完全自托管
+- **openGym**（[DuarteSantos8/openGym](https://github.com/DuarteSantos8/openGym)）是数据源，负责记录训练、体重和日程。
+- **openGym AI Coach** 是独立的附加服务，**仅读取** openGym 数据进行分析，**绝不写入或修改**训练记录。
+- 本项目的目标是填补 openGym 在智能教练方面的空白，而不是替代或分流它的任何功能。
+- 请继续使用 openGym 作为你的主训练记录应用，AI Coach 只是一个聪明的“旁观者”。
 
-## License
+### 🗺️ Roadmap
 
-本项目基于 [MIT License](LICENSE) 开源。
+- [ ] 支持更多 LLM（本地 Ollama、Claude）
+- [ ] 疲劳度模型改进（结合心率、睡眠数据）
+- [ ] openGym 插件式集成（无需单独服务）
+- [ ] 多语言支持
+- [ ] 训练计划自动生成与导出
+
+### 📜 License
+
+MIT License，详见 [LICENSE](LICENSE) 文件。
 
 ---
 
-# openGym-AI-Coach (English)
+## English
 
-> 🤖 Fine-tuned LLM powered coaching layer for openGym, generating personalized training advice and fatigue warnings.
+### openGym AI Coach
 
-## Why this project?
+A lightweight AI training assistant built on top of openGym. It analyzes your recent workout history, uses an LLM to generate periodized training advice, and warns you when fatigue is accumulating.
 
-[openGym](https://github.com/DuarteSantos8/openGym) is a fantastic self-hosted gym tracker. It records your workouts, weights, and body weight. However, data alone doesn't automatically turn into insight.
+**Why this project?**
 
-**openGym-AI-Coach** aims to fill this ecosystem gap: by integrating with LLMs (like OpenAI), it analyzes your training volume, PR trends, and muscle fatigue to generate periodized training suggestions and warnings, acting as your personal AI coach.
+[openGym](https://github.com/DuarteSantos8/openGym) is an excellent self-hosted fitness tracker. However, it lacks an intelligent coach that tells you when to push harder, when to deload, and when to rest. openGym AI Coach fills that gap as an ecosystem add-on, without altering the main project.
 
-## Features
+### ✨ Features
 
-- 📊 **Data Parsing**: Parses JSON workout data exported from openGym.
-- 🧠 **AI Analysis**: Analyzes volume, PR trends, and muscle group fatigue using OpenAI API.
-- ⚠️ **Fatigue Warning**: Identifies overtraining risks and lagging muscle groups.
-- 🗓️ **Periodization**: Generates training plan suggestions for the next cycle.
-- 🚀 **Standalone**: Runs as a standalone Node.js service without invading the main project codebase.
+- 🤖 **AI-Powered Advice** – Generates personalized weekly plans based on actual volume, PR trends, and recovery status via OpenAI.
+- ⚠️ **Fatigue Alerts** – Detects consecutive high-intensity sessions or insufficient sleep (if available) and issues warnings.
+- 🔌 **Plug-and-Play API** – REST endpoints that easily integrate with openGym webhooks or cron jobs.
+- 🧩 **Customizable Prompts** – Default templates included; override via environment variables with your own coaching style.
+- 📊 **Visual Dashboard** – Simple web UI to view recent advice and fatigue scores.
+- 📦 **Self-Hosted Friendly** – One-command Docker deployment, runs independently, read-only access to openGym data.
 
-## Installation
+### 📦 Installation
 
-Ensure you have Node.js (>=18.0.0) installed.
+Node.js ≥ 18 required.
 
 ```bash
-git clone https://github.com/yourname/opengym-ai-coach.git
+git clone https://github.com/<user>/opengym-ai-coach.git
 cd opengym-ai-coach
 npm install
 ```
 
-## Quick Start
+### ⚙️ Configuration
 
-1. Export your workout data (JSON format) from your openGym instance.
-2. Set the OpenAI API Key environment variable:
+Create a `.env` file:
 
-```bash
-export OPENAI_API_KEY="your_api_key_here"
+```env
+OPENGYM_URL=https://your-opengym-instance.com
+OPENGYM_API_KEY=your_opengym_api_key
+OPENAI_API_KEY=sk-your-key-here
+PORT=3000
 ```
 
-3. Start the service:
+### 🚀 Quick Start
 
 ```bash
 npm start
 ```
 
-4. Test it using curl in another terminal:
+Service listens on `http://localhost:3000`.
+
+**Get training advice**
 
 ```bash
-curl -X POST http://localhost:3000/api/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"workouts": [{"date": "2023-10-01", "exercise": "Bench Press", "sets": 3, "reps": 10, "weight": 80}]}'
+curl -X POST http://localhost:3000/api/coach/advice -H 'Content-Type: application/json' -d '{"weeks": 4}'
 ```
 
-## Relationship to the main project
+Example response:
 
-This is an unofficial ecosystem add-on for [DuarteSantos8/openGym](https://github.com/DuarteSantos8/openGym).
+```json
+{
+  "advice": "Based on your last 4 weeks of training...",
+  "fatigueLevel": "moderate",
+  "nextWeekPlan": { "monday": "...", ... }
+}
+```
 
-- **No Main Project Code**: Does not contain or modify openGym's core source code.
-- **Data Independent**: Works by reading data files exported by openGym, without directly connecting to its database.
-- **Complementary**: openGym focuses on "tracking", this project focuses on "analysis and advice".
+You can configure openGym to call this endpoint weekly and relay the advice to your notification channels.
 
-## Roadmap
+### 🔗 Relation to the Main Project
 
-- [x] Basic data parsing and API routing
-- [ ] Support for more granular fatigue calculation algorithms
-- [ ] Web UI dashboard for analysis results
-- [ ] Support for local open-source LLMs (e.g., Llama 3) for complete self-hosting
+- **openGym** ([DuarteSantos8/openGym](https://github.com/DuarteSantos8/openGym)) is the data source – it tracks your workouts, weight, and schedule.
+- **openGym AI Coach** is an independent sidecar service that **only reads** from openGym, **never writes** or alters your logs.
+- This project aims to enhance the openGym experience with intelligent coaching, without duplicating or competing with its core features.
+- Keep using openGym as your primary workout log; AI Coach is just a smart observer.
 
-## License
+### 🗺️ Roadmap
 
-This project is licensed under the [MIT License](LICENSE).
+- [ ] Support for additional LLMs (local Ollama, Claude)
+- [ ] Improved fatigue models (heart rate, sleep data)
+- [ ] Native openGym plugin (no separate service)
+- [ ] Internationalization
+- [ ] Automated training plan generation and export
+
+### 📜 License
+
+MIT License – see [LICENSE](LICENSE).
