@@ -1,6 +1,6 @@
 # openGym AI Coach
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/<user>/opengym-ai-coach/test.yml?branch=main&label=tests&style=flat-square)]()
+[![Tests](https://img.shields.io/github/actions/workflow/status/zjukop3/opengym-ai-coach/test.yml?branch=main&label=tests&style=flat-square)]()
 [![License: MIT](https://img.shields.io/badge/license-MIT-brightgreen?style=flat-square)](LICENSE)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0-brightgreen?style=flat-square)]()
 
@@ -28,7 +28,7 @@
 确保已安装 Node.js ≥ 18。
 
 ```bash
-git clone https://github.com/<user>/opengym-ai-coach.git
+git clone https://github.com/zjukop3/opengym-ai-coach.git
 cd opengym-ai-coach
 npm install
 ```
@@ -117,7 +117,7 @@ A lightweight AI training assistant built on top of openGym. It analyzes your re
 Node.js ≥ 18 required.
 
 ```bash
-git clone https://github.com/<user>/opengym-ai-coach.git
+git clone https://github.com/zjukop3/opengym-ai-coach.git
 cd opengym-ai-coach
 npm install
 ```
